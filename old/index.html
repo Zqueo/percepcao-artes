@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria de Arte</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 30px 20px;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .galeria {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+      max-width: 1100px;
+      margin: 30px auto;
+    }
+
+    .item {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 2px 10px #0002;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .item:hover,
+    .item:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px #0003;
+      outline-offset: 3px;
+    }
+
+    .item>img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .descricao {
+      padding: 18px;
+    }
+
+    .titulo-obra {
+      font-size: 19px;
+      margin: 0 0 12px;
+    }
+
+    .ficha-tecnica {
+      border-left: 3px solid #aaa;
+      padding-left: 12px;
+      margin-bottom: 15px;
+    }
+
+    .ficha-tecnica p {
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 3px 0;
+      color: #555;
+    }
+
+    .ficha-tecnica strong {
+      color: #222;
+    }
+
+    .texto-obra {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #444;
+      margin-bottom: 0;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .92);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 65px 20px 25px;
+    }
+
+    .modal.aberto {
+      display: flex;
+    }
+
+    .fechar {
+      position: absolute;
+      top: 12px;
+      right: 22px;
+      background: transparent;
+      border: 0;
+      color: white;
+      font-size: 42px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-conteudo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-height: 100%;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    .modal-conteudo>img {
+      max-width: 90vw;
+      max-height: 60vh;
+      object-fit: contain;
+    }
+
+    #descricaoAmpliada {
+      color: white;
+      max-width: 650px;
+      width: 90%;
+      text-align: left;
+    }
+
+    #descricaoAmpliada .titulo-obra,
+    #descricaoAmpliada .ficha-tecnica p,
+    #descricaoAmpliada .ficha-tecnica strong,
+    #descricaoAmpliada .texto-obra {
+      color: #f1f1f1;
+    }
+
+    /* Modal adaptável e botão de fechar sempre acessível */
+    .modal {
+      padding: 72px 20px 24px;
+      padding-top: max(72px, env(safe-area-inset-top));
+    }
+
+    .fechar {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      right: max(14px, env(safe-area-inset-right));
+      z-index: 1002;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #292929;
+      font-size: 34px;
+    }
+
+    .fechar:hover,
+    .fechar:focus-visible {
+      background: #484848;
+      outline-offset: 3px;
+    }
+
+    .modal-conteudo {
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 18px 12px;
+      }
+
+      h1 {
+        font-size: 1.55rem;
+        margin: 12px 0 20px;
+      }
+
+      .galeria {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin: 18px auto;
+      }
+
+      .item>img {
+        height: auto;
+        aspect-ratio: 4 / 3;
+      }
+
+      .descricao {
+        padding: 16px;
+      }
+
+      .titulo-obra {
+        font-size: 1.12rem;
+      }
+
+      .ficha-tecnica p,
+      .texto-obra {
+        font-size: 0.9rem;
+      }
+
+      .modal {
+        padding: max(70px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+        align-items: stretch;
+      }
+
+      .modal-conteudo {
+        width: 100%;
+        gap: 16px;
+        max-height: 100%;
+      }
+
+      .modal-conteudo>img {
+        width: 100%;
+        max-width: 100%;
+        max-height: 52dvh;
+        height: auto;
+      }
+
+      #descricaoAmpliada {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 6px 12px;
+      }
+
+      #descricaoAmpliada .titulo-obra {
+        font-size: 1.25rem;
+      }
+
+      .fechar {
+        right: max(12px, env(safe-area-inset-right));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .item {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Minha Galeria de Arte</h1>
+  <main class="galeria">
+    <!-- Para adicionar obras, copie um bloco .item e altere seus dados. -->
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Homens e animais pintados na Gruta das Bestas">
+      <img src="imagens/obra01.jpg" alt="Homens e animais pintados na Gruta das Bestas">
+      <div class="descricao">
+        <h3 class="titulo-obra">Homens e animais pintados na Gruta das Bestas</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> Egito</p>
+          <p><strong>Informações:</strong> Pintura rupestre</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Animais pintados na Gruta de Lascaux">
+      <img src="imagens/obra02.jpg" alt="Animais pintados na Gruta de Lascaux">
+      <div class="descricao">
+        <h3 class="titulo-obra">Animais pintados na Gruta de Lascaux</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> c. 17.000 anos AP</p>
+          <p><strong>Informações:</strong> Pintura rupestre</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Bisão na Caverna de Altamira">
+      <img src="imagens/obra03.jpg" alt="Bisão na Caverna de Altamira">
+      <div class="descricao">
+        <h3 class="titulo-obra">Bisão na Caverna de Altamira</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Informações:</strong> Pintura rupestre</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Ourives trabalhando">
+      <img src="imagens/obra04.jpg" alt="Ourives trabalhando">
+      <div class="descricao">
+        <h3 class="titulo-obra">Ourives trabalhando</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Informações:</strong> Pintura da Tumba 181, Vale dos Nobres, Sheikh Abd el-Qurna, Egito</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Seti I perante Hórus">
+      <img src="imagens/obra05.jpg" alt="Seti I perante Hórus">
+      <div class="descricao">
+        <h3 class="titulo-obra">Seti I perante Hórus</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Informações:</strong> Templo de Seti I, Abidos, Egito</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Pinheiro, Pedra e Glicínias">
+      <img src="imagens/obra06.jpg" alt="Pinheiro, Pedra e Glicínias">
+      <div class="descricao">
+        <h3 class="titulo-obra">Pinheiro, Pedra e Glicínias</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Li Shan</p>
+          <p><strong>Ano/Período:</strong> Dinastia Qing</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Bambus">
+      <img src="imagens/obra07.jpg" alt="Bambus">
+      <div class="descricao">
+        <h3 class="titulo-obra">Bambus</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Wen Tong</p>
+          <p><strong>Ano/Período:</strong> Dinastia Song do Norte</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Cristo em majestade">
+      <img src="imagens/obra08.jpg" alt="Cristo em majestade">
+      <div class="descricao">
+        <h3 class="titulo-obra">Cristo em majestade</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Informações:</strong> Abside da Igreja de Sant Climent de Taüll; atualmente no Museu Nacional de
+            Arte da Catalunha</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Página da Bíblia Floreffe">
+      <img src="imagens/obra09.jpg" alt="Página da Bíblia Floreffe">
+      <div class="descricao">
+        <h3 class="titulo-obra">Página da Bíblia Floreffe</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> Século XII</p>
+          <p><strong>Informações:</strong> Países Baixos</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar A Mãe de Deus">
+      <img src="imagens/obra10.jpg" alt="A Mãe de Deus">
+      <div class="descricao">
+        <h3 class="titulo-obra">A Mãe de Deus</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> Século XII</p>
+          <p><strong>Informações:</strong> Iluminura nos Evangelhos de Henrique, o Leão; Alemanha</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Maestà (Madona com anjos e profetas)">
+      <img src="imagens/obra11.jpg" alt="Maestà (Madona com anjos e profetas)">
+      <div class="descricao">
+        <h3 class="titulo-obra">Maestà (Madona com anjos e profetas)</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Cimabue</p>
+          <p><strong>Informações:</strong> Galleria degli Uffizi, Florença</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Crucificação">
+      <img src="imagens/obra12.jpg" alt="Crucificação">
+      <div class="descricao">
+        <h3 class="titulo-obra">Crucificação</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Giotto</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Mona Lisa">
+      <img src="imagens/obra13.jpg" alt="Mona Lisa">
+      <div class="descricao">
+        <h3 class="titulo-obra">Mona Lisa</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Leonardo da Vinci</p>
+          <p><strong>Ano/Período:</strong> 1506</p>
+          <p><strong>Informações:</strong> Museu do Louvre</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar O Nascimento de Vênus">
+      <img src="imagens/obra14.jpg" alt="O Nascimento de Vênus">
+      <div class="descricao">
+        <h3 class="titulo-obra">O Nascimento de Vênus</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Sandro Botticelli</p>
+          <p><strong>Ano/Período:</strong> 1485</p>
+          <p><strong>Informações:</strong> Galleria degli Uffizi</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Sepultamento de Cristo">
+      <img src="imagens/obra15.jpg" alt="Sepultamento de Cristo">
+      <div class="descricao">
+        <h3 class="titulo-obra">Sepultamento de Cristo</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> 1603/04</p>
+          <p><strong>Informações:</strong> Óleo sobre tela; 300 × 203 cm; Pinacoteca do Vaticano</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Judith Beheading Holofernes">
+      <img src="imagens/obra16.jpg" alt="Judith Beheading Holofernes">
+      <div class="descricao">
+        <h3 class="titulo-obra">Judith Beheading Holofernes</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Caravaggio</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Aula de Anatomia do Dr. Tulp">
+      <img src="imagens/obra17.jpg" alt="Aula de Anatomia do Dr. Tulp">
+      <div class="descricao">
+        <h3 class="titulo-obra">Aula de Anatomia do Dr. Tulp</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Rembrandt</p>
+          <p><strong>Ano/Período:</strong> 1632</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0"
+      aria-label="Ampliar A ponte Japonesa (The Bridge in Monet&#x27;s Garden)">
+      <img src="imagens/obra18.jpg" alt="A ponte Japonesa (The Bridge in Monet&#x27;s Garden)">
+      <div class="descricao">
+        <h3 class="titulo-obra">A ponte Japonesa (The Bridge in Monet&#x27;s Garden)</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Claude Monet</p>
+          <p><strong>Ano/Período:</strong> 1900</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Catedral em Ruão">
+      <img src="imagens/obra19.jpg" alt="Catedral em Ruão">
+      <div class="descricao">
+        <h3 class="titulo-obra">Catedral em Ruão</h3>
+        <div class="ficha-tecnica">
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Water Lilies and Japanese Bridge">
+      <img src="imagens/obra20.jpg" alt="Water Lilies and Japanese Bridge">
+      <div class="descricao">
+        <h3 class="titulo-obra">Water Lilies and Japanese Bridge</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Claude Monet</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Japanese Bridge">
+      <img src="imagens/obra21.jpg" alt="Japanese Bridge">
+      <div class="descricao">
+        <h3 class="titulo-obra">Japanese Bridge</h3>
+        <div class="ficha-tecnica">
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Japanese Bridge">
+      <img src="imagens/obra22.jpg" alt="Japanese Bridge">
+      <div class="descricao">
+        <h3 class="titulo-obra">Japanese Bridge</h3>
+        <div class="ficha-tecnica">
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Obra 23 — título não informado">
+      <img src="imagens/obra23.jpg" alt="Obra 23 — título não informado">
+      <div class="descricao">
+        <h3 class="titulo-obra">Obra 23 — título não informado</h3>
+        <div class="ficha-tecnica">
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Bedroom in Arles (first version)">
+      <img src="imagens/obra24.jpg" alt="Bedroom in Arles (first version)">
+      <div class="descricao">
+        <h3 class="titulo-obra">Bedroom in Arles (first version)</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> 1888</p>
+          <p><strong>Informações:</strong> Óleo sobre tela; 72 × 90 cm</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar A Sunday on La Grande Jatte">
+      <img src="imagens/obra25.jpg" alt="A Sunday on La Grande Jatte">
+      <div class="descricao">
+        <h3 class="titulo-obra">A Sunday on La Grande Jatte</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Georges Seurat</p>
+          <p><strong>Ano/Período:</strong> 1884</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Mulher com Chapéu">
+      <img src="imagens/obra26.jpg" alt="Mulher com Chapéu">
+      <div class="descricao">
+        <h3 class="titulo-obra">Mulher com Chapéu</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Henri Matisse</p>
+          <p><strong>Ano/Período:</strong> 1905</p>
+          <p><strong>Informações:</strong> Óleo sobre tela</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Dance">
+      <img src="imagens/obra27.jpg" alt="Dance">
+      <div class="descricao">
+        <h3 class="titulo-obra">Dance</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Henri Matisse</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Composição II em Vermelho, Azul e Amarelo">
+      <img src="imagens/obra29.jpg" alt="Composição II em Vermelho, Azul e Amarelo">
+      <div class="descricao">
+        <h3 class="titulo-obra">Composição II em Vermelho, Azul e Amarelo</h3>
+        <div class="ficha-tecnica">
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Suíte Santa Fé">
+      <img src="imagens/obra30.jpg" alt="Suíte Santa Fé">
+      <div class="descricao">
+        <h3 class="titulo-obra">Suíte Santa Fé</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Bill Barret</p>
+          <p><strong>Ano/Período:</strong> 2010</p>
+          <p><strong>Informações:</strong> Pintura abstrata</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0"
+      aria-label="Ampliar Visão Após o Sermão (Jacob lutando com o anjo)">
+      <img src="imagens/obra31.jpg" alt="Visão Após o Sermão (Jacob lutando com o anjo)">
+      <div class="descricao">
+        <h3 class="titulo-obra">Visão Após o Sermão (Jacob lutando com o anjo)</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Ano/Período:</strong> 1888</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="item" role="button" tabindex="0" aria-label="Ampliar Músico em uma noite enluarada">
+      <img src="imagens/obra32.jpg" alt="Músico em uma noite enluarada">
+      <div class="descricao">
+        <h3 class="titulo-obra">Músico em uma noite enluarada</h3>
+        <div class="ficha-tecnica">
+          <p><strong>Artista:</strong> Ernst Ludwig Kirchner</p>
+          <p><strong>Ano/Período:</strong> 1924</p>
+          <p><strong>Informações:</strong> Museu Städel</p>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Visualização ampliada da obra"
+    aria-hidden="true">
+    <button class="fechar" id="fechar" type="button" aria-label="Fechar visualização">&times;</button>
+    <div class="modal-conteudo">
+      <img id="imagemAmpliada" alt="">
+      <div id="descricaoAmpliada"></div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('modal');
+    const botaoFechar = document.getElementById('fechar');
+    let elementoAnterior = null;
+
+    function abrirImagem(elemento) {
+      elementoAnterior = document.activeElement;
+      const imagem = elemento.querySelector('img');
+      const descricao = elemento.querySelector('.descricao');
+      const ampliada = document.getElementById('imagemAmpliada');
+      ampliada.src = imagem.src;
+      ampliada.alt = imagem.alt;
+      document.getElementById('descricaoAmpliada').innerHTML = descricao.innerHTML;
+      modal.classList.add('aberto');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.querySelector('.modal-conteudo').scrollTop = 0;
+      botaoFechar.focus();
+    }
+
+    function fecharImagem() {
+      if (!modal.classList.contains('aberto')) return;
+      modal.classList.remove('aberto');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (elementoAnterior) elementoAnterior.focus();
+    }
+
+    document.querySelectorAll('.item').forEach(item => {
+      item.addEventListener('click', () => abrirImagem(item));
+      item.addEventListener('keydown', evento => {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+          evento.preventDefault();
+          abrirImagem(item);
+        }
+      });
+    });
+    botaoFechar.addEventListener('click', fecharImagem);
+    modal.addEventListener('click', evento => { if (evento.target === modal) fecharImagem(); });
+    document.addEventListener('keydown', evento => { if (evento.key === 'Escape') fecharImagem(); });
+  </script>
+</body>
+
+</html>
